@@ -1,0 +1,54 @@
+name: Archive Media to GitHub Releases
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pv_forecast.png'
+      - 'sat_BG.png'
+      - 'sat_caribbean.jpeg'
+      - 'sat_EU.png'
+      - 'sat_UK.png'
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate timestamp tag
+        id: meta
+        run: |
+          TAG="media-batch-$(date +'%Y%m%d-%H%M%S')"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release and Upload Files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          
+          gh release create "$TAG" \
+            pv_forecast.png \
+            sat_BG.png \
+            sat_caribbean.jpeg \
+            sat_EU.png \
+            sat_UK.png \
+            --title "Media Snapshot $TAG" \
+            --notes "Automated rolling archive containing the latest versions of tracked images."
+
+      - name: Prune old releases (Keep latest 10)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAGS_TO_DELETE=$(gh release list --limit 100 --json tagName -q '[.[] | select(.tagName | startswith("media-batch-")) | .tagName] | .[10:]')
+          
+          for t in $(echo "$TAGS_TO_DELETE" | jq -r '.[]'); do
+            echo "Removing expired release version: $t"
+            gh release delete "$t" --cleanup-tag -y
+          done
