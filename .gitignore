@@ -1,5 +1,6 @@
 *
 !.gitignore
+!.github/
 !latest.json
 !sat_UK.png
 !sat_BG.png
