@@ -10,6 +10,7 @@ on:
       - 'sat_caribbean.jpeg'
       - 'sat_EU.png'
       - 'sat_UK.png'
+  workflow_dispatch:
 
 jobs:
   archive:
@@ -42,11 +43,12 @@ jobs:
             --title "Media Snapshot $TAG" \
             --notes "Automated rolling archive containing the latest versions of tracked images."
 
-      - name: Prune old releases (Keep latest 10)
+      - name: Prune old releases (Keep latest 100)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAGS_TO_DELETE=$(gh release list --limit 100 --json tagName -q '[.[] | select(.tagName | startswith("media-batch-")) | .tagName] | .[10:]')
+          # Fetch up to 300 releases, grab all media-batch tags, and select everything past index 100 (.[100:])
+          TAGS_TO_DELETE=$(gh release list --limit 300 --json tagName -q '[.[] | select(.tagName | startswith("media-batch-")) | .tagName] | .[100:]')
           
           for t in $(echo "$TAGS_TO_DELETE" | jq -r '.[]'); do
             echo "Removing expired release version: $t"
