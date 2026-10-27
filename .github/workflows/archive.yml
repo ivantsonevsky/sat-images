@@ -10,6 +10,9 @@ on:
       - 'sat_caribbean.jpeg'
       - 'sat_EU.png'
       - 'sat_UK.png'
+  schedule:
+    # Runs every 15 minutes automatically to prevent timeline gaps
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -47,7 +50,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fetch up to 300 releases, grab all media-batch tags, and select everything past index 100 (.[100:])
           TAGS_TO_DELETE=$(gh release list --limit 300 --json tagName -q '[.[] | select(.tagName | startswith("media-batch-")) | .tagName] | .[100:]')
           
           for t in $(echo "$TAGS_TO_DELETE" | jq -r '.[]'); do
