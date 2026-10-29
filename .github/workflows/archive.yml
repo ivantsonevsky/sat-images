@@ -43,6 +43,7 @@ jobs:
             sat_caribbean.jpeg \
             sat_EU.png \
             sat_UK.png \
+            latest.json \
             --title "Media Snapshot $TAG" \
             --notes "Automated rolling archive containing the latest versions of tracked images."
 
